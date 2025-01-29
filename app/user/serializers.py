@@ -51,7 +51,7 @@ class UserSerializer(serializers.ModelSerializer):
         regex = r'^\+?[1-9]\d{11,14}$'
         if not re.match(regex, value):
             raise serializers.ValidationError("Invalid phone number.")
-        
+
         exists = get_user_model().objects.filter(
             phone_number=value).exists()
         if exists:
