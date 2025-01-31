@@ -16,10 +16,9 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ('email', 'first_name', 'last_name')
     readonly_fields = ('date_joined', 'last_login')
     ordering = ['email']
-    exclude = ['username']
     list_filter = ('is_active', 'is_superuser', 'is_staff')
     fieldsets = (
-        ('Credentials',
+        (None,
             {'fields': ('email', 'password')}),
         ('Personal Info',
             {'fields': ('first_name', 'last_name', 'phone_number')}),
@@ -32,18 +31,22 @@ class UserAdmin(BaseUserAdmin):
                 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
-    add_fields = (
+    add_fieldsets = (
         (None, {
             'classes': ('wide',),
             'fields': (
                 'email',
                 'password1',
                 'password2',
-                'name',
+                'first_name',
+                'last_name',
+                'phone_number',
                 'is_active',
                 'is_staff',
                 'is_superuser',
-
             )
         }),
     )
+
+
+admin.site.register(models.Entry)

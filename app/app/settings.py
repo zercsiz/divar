@@ -40,9 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework.authtoken',
-    
+
     'core.apps.CoreConfig',
     'user.apps.UserConfig',
+    'entry.apps.EntryConfig',
 ]
 
 AUTH_USER_MODEL = 'core.user'

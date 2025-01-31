@@ -29,6 +29,7 @@ RUN python -m venv /py && \
     chmod -R 755 /vol
 
 ENV PATH="/py/bin:$PATH"
+ENV ENTRY_EXPIRATION_MONTHS=1
 
 USER django-user
 

@@ -25,7 +25,7 @@ class PunlicUserApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-    def test_create_user_success(self):
+    def test_create_user_successful(self):
         """Tests that the user creation is successful."""
         payload = {
             'email': 'user@example.com',
@@ -195,7 +195,7 @@ class PrivateUserApiTests(TestCase):
         self.assertTrue(self.user.check_password(payload['password']))
         payload.pop('password')
         for attr, value in payload.items():
-            self.assertEqual(payload[attr], getattr(self.user, attr))
+            self.assertEqual(value, getattr(self.user, attr))
 
     def test_partial_update_user_profile(self):
         """Test partial update user profile for authenticated user."""
@@ -209,7 +209,7 @@ class PrivateUserApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
         for attr, value in payload.items():
-            self.assertEqual(payload[attr], getattr(self.user, attr))
+            self.assertEqual(value, getattr(self.user, attr))
 
     def test_update_email_exists_error(self):
         """Test return error if email already exists in database."""
