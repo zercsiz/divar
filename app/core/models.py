@@ -69,6 +69,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
 
+class Category(models.Model):
+    """
+    Category object.
+    """
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Entry(models.Model):
     """
     Entry object.
@@ -85,6 +95,7 @@ class Entry(models.Model):
     expires_at = models.DateTimeField()
     address = models.TextField()
     phone_number = models.CharField(max_length=15)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title

@@ -49,4 +49,13 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
-admin.site.register(models.Entry)
+@admin.register(models.Entry)
+class EntryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'category',
+                    'price', 'created_at', 'expires_at', )
+    ordering = ['created_at',]
+    readonly_fields = ['created_at', 'edited_at']
+    search_fields = ('title', 'description')
+
+
+admin.site.register(models.Category)

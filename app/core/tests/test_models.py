@@ -68,6 +68,7 @@ class ModelTests(TestCase):
             email='test@example.com',
             password='goodpass123',
         )
+        category_obg = models.Category.objects.create(name='clothing')
         entry = models.Entry.objects.create(
             user=user,
             title='test entry',
@@ -75,6 +76,14 @@ class ModelTests(TestCase):
             price=Decimal('150.00'),
             expires_at=make_aware(datetime.now()) + relativedelta(months=1),
             phone_number='+906667775454',
-            address='example address, number 99'
+            address='example address, number 99',
+            category=category_obg
         )
         self.assertEqual(str(entry), entry.title)
+
+    def test_create_category(self):
+        """
+        Test creating a new category is successful.
+        """
+        category = models.Category.objects.create(name='cat1')
+        self.assertEqual(str(category), category.name)
