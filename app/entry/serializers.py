@@ -27,10 +27,10 @@ class EntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Entry
         fields = ['id', 'title', 'price', 'created_at',
-                  'edited_at', 'expires_at', 'address', 'phone_number',
+                  'edited_at', 'is_expired', 'address', 'phone_number',
                   'category']
         read_only_fields = ['id', 'created_at', 'edited_at',
-                            'expires_at']
+                            'is_expired']
 
     def create(self, validated_data):
         """

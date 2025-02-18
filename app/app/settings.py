@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'user.apps.UserConfig',
     'entry.apps.EntryConfig',
+    'plan.apps.PlanConfig',
 ]
 
 AUTH_USER_MODEL = 'core.user'

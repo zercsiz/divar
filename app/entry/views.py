@@ -4,15 +4,10 @@ Views for recipe APIs.
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
 
 from core.models import Entry
 from entry import serializers
-
-from django.utils.timezone import make_aware
-
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-import os
 
 
 class EntryViewSet(viewsets.ModelViewSet):
@@ -32,7 +27,8 @@ class EntryViewSet(viewsets.ModelViewSet):
         # but not allowed to preform delete or update operations
         # on other users entries
         if self.action == 'list' or self.action == 'retrieve':
-            return self.queryset.all().order_by('-created_at')
+            return self.queryset.filter(
+                is_expired=False).order_by('-created_at')
 
         return self.queryset.filter(
             user=self.request.user).order_by('-created_at')
@@ -47,12 +43,14 @@ class EntryViewSet(viewsets.ModelViewSet):
         return self.serializer_class
 
     def perform_create(self, serializer):
-        """Create a new entry."""
+        """
+        Create a new entry.
+        """
+        user_entries_count = Entry.objects.filter(
+            user=self.request.user).count()
+        max_entries = self.request.user.plan.max_entries
+        if user_entries_count == max_entries:
+            raise ValidationError(
+                f'User has reached the maximum of {max_entries} entries.')
 
-        # expiration date is retrieved from environment variable in dockerfile
-        exp_months = int(os.getenv('ENTRY_EXPIRATION_MONTHS'))
-        serializer.save(
-            user=self.request.user,
-            expires_at=make_aware(
-                datetime.now()) + relativedelta(months=exp_months)
-        )
+        serializer.save(user=self.request.user)

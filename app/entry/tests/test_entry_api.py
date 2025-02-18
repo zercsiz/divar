@@ -2,19 +2,20 @@
 Tests for entry epi.
 """
 from decimal import Decimal
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Entry, Category
+from core.models import (
+    Entry,
+    Category,
+    Plan
+)
 from entry.serializers import EntrySerializer, EntryDetailSerializer
 
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.utils.timezone import make_aware
 
 
 ENTRIES_URL = reverse('entry:entry-list')
@@ -53,7 +54,6 @@ def create_entry(user: object, **params) -> object:
         'description': 'a test description for entry',
         'price': Decimal('150.00'),
         'phone_number': '+906667775454',
-        'expires_at': make_aware(datetime.now()) + relativedelta(months=1),
         'address': 'example address, number 99',
         'category': category
     }
@@ -145,10 +145,9 @@ class PrivateEntryApiTests(TestCase):
         for attr, value in payload.items():
             self.assertEqual(getattr(entry, attr), value)
         self.assertEqual(entry.user, self.user)
-        expiration_date = (
-            make_aware(datetime.now()) + relativedelta(months=1)).date()
-        self.assertEqual(entry.expires_at.date(), expiration_date)
         self.assertEqual(entry.category, category_obj)
+
+        self.assertEqual(entry.user.plan.name, 'Basic')
 
     def create_entry_without_category_error(self):
         """
@@ -165,6 +164,28 @@ class PrivateEntryApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         exists = Entry.objects.get(title=payload['title'])
         self.assertFalse(exists)
+
+    def test_create_more_than_max_entries_error(self):
+        """
+        Test creating more entried than max entries returns error.
+        """
+        plan, created = Plan.objects.get_or_create(name='Basic')
+        category_obj = Category.objects.create(name='cat1')
+        for _ in range(plan.max_entries):
+            create_entry(user=self.user)
+
+        payload = {
+            'title': 'test entry',
+            'description': 'a test description for entry',
+            'price': Decimal('150.00'),
+            'phone_number': '+906667775454',
+            'address': 'example address, number 99',
+            'category': category_obj.name
+        }
+        res = self.client.post(ENTRIES_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        entries_count = Entry.objects.filter(user=self.user).count()
+        self.assertEqual(entries_count, plan.max_entries)
 
     def test_partial_update(self):
         """
@@ -221,21 +242,6 @@ class PrivateEntryApiTests(TestCase):
         self.client.patch(url, payload)
         entry.refresh_from_db()
         self.assertEqual(entry.user, self.user)
-
-    def test_update_expires_at_returns_error(self):
-        """
-        Test updating expires_at returns error.
-        """
-        entry = create_entry(user=self.user)
-        original_expires_at = entry.expires_at
-        payload = {
-            'expires_at': make_aware(
-                datetime.now()) + relativedelta(months=3),
-        }
-        url = detail_url(entry.id)
-        self.client.patch(url, payload)
-        entry.refresh_from_db()
-        self.assertEqual(entry.expires_at, original_expires_at)
 
     def test_update_other_users_entry_returns_error(self):
         """

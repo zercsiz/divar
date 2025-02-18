@@ -6,9 +6,6 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from decimal import Decimal
 from core import models
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from django.utils.timezone import make_aware
 
 
 class ModelTests(TestCase):
@@ -25,6 +22,9 @@ class ModelTests(TestCase):
         )
         self.assertEqual(user.email, email)
         self.assertTrue(user.check_password(password))
+
+        plan = models.Plan.objects.get(name='Basic')
+        self.assertEqual(user.plan, plan)
 
     def test_new_user_email_normalized(self):
         """
@@ -74,7 +74,6 @@ class ModelTests(TestCase):
             title='test entry',
             description='a test description for entry',
             price=Decimal('150.00'),
-            expires_at=make_aware(datetime.now()) + relativedelta(months=1),
             phone_number='+906667775454',
             address='example address, number 99',
             category=category_obg
