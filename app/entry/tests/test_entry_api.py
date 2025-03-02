@@ -110,6 +110,20 @@ class PrivateEntryApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
+    def test_expired_entries_are_not_returned_in_listing(self):
+        """
+        Test expired entries are not returned in lists.
+        """
+        user2 = create_user(email='user2@example.com')
+        create_entry(user=user2, title='entry1', is_expired=True)
+        create_entry(user=user2, title='entry2')
+        create_entry(user=user2, title='entry3')
+        res = self.client.get(ENTRIES_URL)
+        entries = Entry.objects.filter(
+            is_expired=False).order_by('-created_at')
+        serializer = EntrySerializer(entries, many=True)
+        self.assertEqual(res.data, serializer.data)
+
     def test_entry_detail(self):
         """
         Test get recipe detail.

@@ -19,6 +19,7 @@ services:
       - DB_PASS=changeme
     depends_on:
       - db
+      - redis
 
 
   db:
@@ -29,6 +30,40 @@ services:
       - POSTGRES_DB=devdb
       - POSTGRES_USER=devuser
       - POSTGRES_PASSWORD=changeme
+
+  redis:
+    image: redis:latest
+    restart: always
+
+  celery:
+    build:
+      context: .
+    command: celery -A app worker --loglevel=info
+    volumes:
+      - ./app:/app
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=devuser
+      - DB_PASS=changeme
+    depends_on:
+      - redis
+      - app
+
+  celery-beat:
+    build:
+      context: .
+    command: celery -A app beat --loglevel=info
+    volumes:
+      - ./app:/app
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=devuser
+      - DB_PASS=changeme
+    depends_on:
+      - redis
+      - celery
 
 volumes:
   dev-db-data:
