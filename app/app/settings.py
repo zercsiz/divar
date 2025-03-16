@@ -39,8 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'drf_spectacular',
     'rest_framework.authtoken',
-
     'django_celery_beat',
 
     'core.apps.CoreConfig',
@@ -149,4 +149,8 @@ CELERY_TASK_SERIALIZER = 'json'
 
 SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }

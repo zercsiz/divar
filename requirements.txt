@@ -4,5 +4,6 @@ psycopg2>=2.9.10,<2.10
 python-dateutil>=2.9.0,<2.10
 celery>=5.2.0,<5.3
 redis>=4.0.0,<4.1.0
-django-celery-beat
+django-celery-beat>=2.7.0,<2.8.0
 Pillow>=11.1.0,<11.2.0
+drf-spectacular>=0.28.0,<0.29.0
