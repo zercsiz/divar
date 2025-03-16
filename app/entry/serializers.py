@@ -78,3 +78,15 @@ class EntryDetailSerializer(EntrySerializer):
     """
     class Meta(EntrySerializer.Meta):
         fields = EntrySerializer.Meta.fields + ['description']
+
+
+class EntryImageSerializer(serializers.ModelSerializer):
+    """
+    Serializer for uploading images to entries.
+    """
+
+    class Meta:
+        model = Entry
+        fields = ['id', 'image']
+        read_only_fields = ['id']
+        extra_kwargs = {'image': {'required': 'True'}}

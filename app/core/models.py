@@ -1,3 +1,10 @@
+"""
+Database models.
+"""
+
+import uuid
+import os
+
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -7,6 +14,16 @@ from django.contrib.auth.models import (
     Permission,
 )
 from django.conf import settings
+
+
+def entry_image_file_path(instance, filename):
+    """
+    Generate file path for new entry image.
+    """
+    ext = os.path.splitext(filename)[1]
+    filename = f'{uuid.uuid4()}{ext}'
+
+    return os.path.join('uploads', 'entry', filename)
 
 
 class Plan(models.Model):
@@ -128,6 +145,7 @@ class Entry(models.Model):
     address = models.TextField()
     phone_number = models.CharField(max_length=15)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    image = models.ImageField(null=True, upload_to=entry_image_file_path)
 
     def __str__(self):
         return self.title
