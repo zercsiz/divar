@@ -47,13 +47,11 @@ class UserManager(BaseUserManager):
         Create, save and return a new user.
         """
         if not email:
-            raise ValueError("User must have an Email Address.")
+            raise ValueError('User must have an Email Address.')
 
         user = self.model(email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
 
-        plan, created = Plan.objects.get_or_create(name='Basic')
-        user.plan = plan
         user.save(using=self._db)
         return user
 
@@ -65,19 +63,8 @@ class UserManager(BaseUserManager):
         superuser.is_staff = True
         superuser.is_superuser = True
 
-        # because plan is for users
-        superuser.plan = None
         superuser.save(using=self._db)
         return superuser
-
-
-def get_default_plan_id() -> int:
-    """
-    creates or gets the default plan
-    to be used as a default for plan field in user model.
-    """
-    plan, created = Plan.objects.get_or_create(name='Basic')
-    return plan.id
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -88,6 +75,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=255, blank=True)
     last_name = models.CharField(max_length=255, blank=True)
     phone_number = models.CharField(max_length=15, blank=True)
+    date_of_birth = models.DateField(null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
     plan = models.ForeignKey(
@@ -106,12 +94,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     groups = models.ManyToManyField(
         Group,
-        related_name="custom_user_set",
+        related_name='custom_user_set',
         blank=True
     )
     user_permissions = models.ManyToManyField(
         Permission,
-        related_name="custom_user_permissions_set",
+        related_name='custom_user_permissions_set',
         blank=True
     )
 

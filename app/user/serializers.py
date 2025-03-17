@@ -9,6 +9,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 import re
+from datetime import date
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,7 +24,8 @@ class UserSerializer(serializers.ModelSerializer):
             'password',
             'first_name',
             'last_name',
-            'phone_number'
+            'phone_number',
+            'date_of_birth'
         ]
         extra_kwargs = {'password': {'write_only': True, 'min_length': 5}}
 
@@ -58,6 +60,33 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid phone number.")
         return value
 
+    def validate_date_of_birth(self, value):
+        """
+        Check the date is ISO 8601 format, over 18 and
+        not more than 100 years old.
+        """
+        today = date.today()
+        age = today.year - value.year - (
+            (today.month, today.day) < (value.month, value.day))
+
+        if age < 18:
+            raise serializers.ValidationError(
+                "User must be at least 18 years old.")
+        if age > 100:
+            raise serializers.ValidationError(
+                "User cannot be more than 100 years old.")
+
+        return value
+
+    def validate(self, data):
+        """
+        Ensure date_of_birth is required only on create.
+        """
+        if self.instance is None and "date_of_birth" not in data:
+            raise serializers.ValidationError(
+                {"date_of_birth": "This field is required."})
+        return data
+
     def create(self, validated_data):
         """
         Create and return a user with encrypted password.
@@ -68,6 +97,9 @@ class UserSerializer(serializers.ModelSerializer):
         """
         Update and return a  user.
         """
+        if validated_data.get('date_of_birth'):
+            raise serializers.ValidationError(
+                'Date of birth cannot be editted.')
         password = validated_data.pop('password', None)
         user = super().update(instance, validated_data)
 

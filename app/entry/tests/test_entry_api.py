@@ -4,6 +4,7 @@ Tests for entry epi.
 from decimal import Decimal
 import tempfile
 import os
+from datetime import date
 
 from PIL import Image
 
@@ -43,12 +44,15 @@ def create_user(**params) -> object:
     """
     Helper function to create and return a new user.
     """
+    plan, created = Plan.objects.get_or_create(name='Basic')
     defaults = {
         'email': 'test@example.com',
         'password': 'testpass123',
         'first_name': 'fname',
         'last_name': 'lname',
-        'phone_number': '+906667775454'
+        'phone_number': '+906667775454',
+        'date_of_birth': date.fromisoformat("2000-01-01"),
+        'plan': plan,
     }
     defaults.update(params)
     user = get_user_model().objects.create_user(**defaults)

@@ -14,12 +14,20 @@ from user.serializers import (
     UserSerializer,
     AuthTokenSerializer,
 )
+from core.models import Plan
 
 
 class CreateUserView(generics.CreateAPIView):
     """Create a new user in the system."""
 
     serializer_class = UserSerializer
+
+    def perform_create(self, serializer):
+        """
+        Basic plan is assigned to users upon creation.
+        """
+        basic_plan, created = Plan.objects.get_or_create(name='Basic')
+        serializer.save(plan=basic_plan)
 
 
 class CreateTokenView(ObtainAuthToken):

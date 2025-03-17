@@ -1,7 +1,6 @@
 """"
 Tests for models.
 """
-
 from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -23,9 +22,6 @@ class ModelTests(TestCase):
         )
         self.assertEqual(user.email, email)
         self.assertTrue(user.check_password(password))
-
-        plan = models.Plan.objects.get(name='Basic')
-        self.assertEqual(user.plan, plan)
 
     def test_new_user_email_normalized(self):
         """
