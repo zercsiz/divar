@@ -28,7 +28,7 @@ class EntrySerializer(serializers.ModelSerializer):
         model = Entry
         fields = ['id', 'title', 'price', 'created_at',
                   'edited_at', 'is_expired', 'address', 'phone_number',
-                  'category']
+                  'category', 'image']
         read_only_fields = ['id', 'created_at', 'edited_at',
                             'is_expired']
 
