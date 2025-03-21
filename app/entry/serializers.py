@@ -5,6 +5,7 @@ from rest_framework import serializers
 from core.models import (
     Entry,
     Category,
+    EntryImage,
 )
 
 
@@ -18,17 +19,30 @@ class CategorySerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
+class EntryImageSerializer(serializers.ModelSerializer):
+    """
+    Serializer for uploading images to entries.
+    """
+    class Meta:
+        model = EntryImage
+        fields = ['id', 'image', 'uploaded_at']
+        read_only_fields = ['id', 'uploaded_at']
+        extra_kwargs = {'image': {'required': 'True'}}
+
+
 class EntrySerializer(serializers.ModelSerializer):
     """
     Serializer for recipes.
     """
     category = serializers.CharField()
+    images = EntryImageSerializer(many=True,
+                                  required=False)
 
     class Meta:
         model = Entry
         fields = ['id', 'title', 'price', 'created_at',
                   'edited_at', 'is_expired', 'address', 'phone_number',
-                  'category', 'image']
+                  'category', 'images']
         read_only_fields = ['id', 'created_at', 'edited_at',
                             'is_expired']
 
@@ -78,15 +92,3 @@ class EntryDetailSerializer(EntrySerializer):
     """
     class Meta(EntrySerializer.Meta):
         fields = EntrySerializer.Meta.fields + ['description']
-
-
-class EntryImageSerializer(serializers.ModelSerializer):
-    """
-    Serializer for uploading images to entries.
-    """
-
-    class Meta:
-        model = Entry
-        fields = ['id', 'image']
-        read_only_fields = ['id']
-        extra_kwargs = {'image': {'required': 'True'}}

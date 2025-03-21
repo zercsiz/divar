@@ -53,14 +53,23 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
+class EntryImageInline(admin.TabularInline):
+    """
+    Inline class for entry image.
+    """
+    model = models.EntryImage
+    extra = 4
+
+
 @admin.register(models.Entry)
 class EntryAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'category',
-                    'price', 'created_at', 'is_expired', )
+                    'price', 'created_at', 'is_expired')
     ordering = ['created_at',]
     readonly_fields = ['created_at', 'edited_at']
     search_fields = ('title', 'description')
     list_filter = ('is_expired',)
+    inlines = [EntryImageInline]
 
 
 admin.site.register(models.Category)
@@ -82,3 +91,9 @@ class PlanAdmin(admin.ModelAdmin):
     list_display = ('name', 'max_entries', 'days_to_expire')
     ordering = ['name',]
     inlines = [UserInline]
+
+
+@admin.register(models.EntryImage)
+class EntryImageAdmin(admin.ModelAdmin):
+    list_display = ('id', 'uploaded_at', 'entry')
+    readonly_fields = ['uploaded_at',]

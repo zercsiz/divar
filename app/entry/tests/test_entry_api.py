@@ -14,13 +14,15 @@ from rest_framework.test import APIClient
 from core.models import (
     Entry,
     Category,
-    Plan
+    Plan,
+    EntryImage
 )
 from entry.serializers import EntrySerializer, EntryDetailSerializer
 
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.core.files.images import ImageFile
 
 
 ENTRIES_URL = reverse('entry:entry-list')
@@ -125,6 +127,24 @@ class PrivateEntryApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
+    def test_retrived_entries_have_images(self):
+        """
+        Test retrieved entries have images.
+        """
+        entry = create_entry(user=self.user, title='test entry')
+        with tempfile.NamedTemporaryFile(
+                suffix=".jpg", delete=False) as temp_file:
+            img = Image.new('RGB', (10, 10))
+            img.save(temp_file, format='JPEG')
+            temp_file.seek(0)
+            EntryImage.objects.create(
+                image=ImageFile(temp_file, name="test_image.jpg"),
+                entry=entry)
+
+        res = self.client.get(ENTRIES_URL)
+        listed_entry = res.data[0]
+        self.assertNotEqual(listed_entry['images'], [])
+
     def test_expired_entries_are_not_returned_in_listing(self):
         """
         Test expired entries are not returned in lists.
@@ -161,7 +181,7 @@ class PrivateEntryApiTests(TestCase):
             'price': Decimal('150.00'),
             'phone_number': '+906667775454',
             'address': 'example address, number 99',
-            'category': category_obj.name
+            'category': category_obj.name,
         }
         res = self.client.post(ENTRIES_URL, payload, format='json')
 
@@ -309,6 +329,12 @@ class PrivateEntryApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue(Entry.objects.filter(user=other_user).exists())
 
+    def test_creating_entry_with_image_error(self):
+        """
+        Test creating an entry with image using entry post method
+        returns error.
+        """
+
 
 class ImageUploadTests(TestCase):
     """
@@ -316,16 +342,19 @@ class ImageUploadTests(TestCase):
     """
 
     def setUp(self):
+        plan = Plan.objects.create(name='Basic')
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            'user@example.com',
-            'password123',
+            email='user@example.com',
+            password='password123',
+            plan=plan
         )
         self.client.force_authenticate(self.user)
         self.entry = create_entry(user=self.user)
 
     def tearDown(self):
-        self.entry.image.delete()
+        for image in self.entry.images.all():
+            image.delete()
 
     def test_upload_image(self):
         """
@@ -336,13 +365,35 @@ class ImageUploadTests(TestCase):
             img = Image.new('RGB', (10, 10))
             img.save(image_file, format='JPEG')
             image_file.seek(0)
-            payload = {'image': image_file}
+            payload = {'images': [image_file]}
             res = self.client.post(url, payload, format='multipart')
 
         self.entry.refresh_from_db()
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertIn('image', res.data)
-        self.assertTrue(os.path.exists(self.entry.image.path))
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        for image in self.entry.images.all():
+            self.assertTrue(os.path.exists(image.image.path))
+
+    def test_upload_multiple_images(self):
+        """
+        Test upload multiple images to a recipe.
+        """
+        url = image_upload_url(self.entry.id)
+        payload = {
+            'images': []
+        }
+        for _ in range(3):  # Create 3 temporary images
+            temp_file = tempfile.NamedTemporaryFile(
+                suffix=".jpg", delete=False)
+            img = Image.new('RGB', (10, 10))
+            img.save(temp_file, format='JPEG')
+            temp_file.seek(0)
+            payload['images'].append(temp_file)
+
+        res = self.client.post(url, payload, format='multipart')
+        self.entry.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        for image in self.entry.images.all():
+            self.assertTrue(os.path.exists(image.image.path))
 
     def test_upload_image_bad_request(self):
         """
@@ -353,3 +404,27 @@ class ImageUploadTests(TestCase):
         res = self.client.post(url, payload, format='multipart')
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_upload_more_than_max_entry_images_error(self):
+        """
+        Test return error if user uplaods more than their
+        max entry images specified in their plan.
+        """
+        url = image_upload_url(self.entry.id)
+        max_entry_images = self.user.plan.max_entry_images
+        payload = {
+            'images': []
+        }
+        # creating 2 images more than max_entry_images
+        for _ in range(max_entry_images+2):
+            temp_file = tempfile.NamedTemporaryFile(
+                suffix=".jpg", delete=False)
+            img = Image.new('RGB', (10, 10))
+            img.save(temp_file, format='JPEG')
+            temp_file.seek(0)
+            payload['images'].append(temp_file)
+
+        res = self.client.post(url, payload, format='multipart')
+        self.entry.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(self.entry.images.all().exists())

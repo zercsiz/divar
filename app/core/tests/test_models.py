@@ -85,10 +85,22 @@ class ModelTests(TestCase):
         self.assertEqual(str(category), category.name)
 
     @patch('core.models.uuid.uuid4')
-    def test_entry_file_name_uuid(self, mock_uuid):
+    def test_entry_image_file_name_uuid(self, mock_uuid):
         """
         Test generating image path.
         """
+        user = get_user_model().objects.create_user(
+            'test@example.com', 'test12345')
+        category = models.Category.objects.create(name='Test Category')
+        models.Entry.objects.create(
+            user=user,
+            title='test entry',
+            description='a test description for entry',
+            price=Decimal('150.00'),
+            phone_number='+906667775454',
+            address='example address, number 99',
+            category=category
+        )
         uuid = 'test-uuid'
         mock_uuid.return_value = uuid
         file_path = models.entry_image_file_path(None, 'example.jpg')

@@ -11,7 +11,10 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
-from core.models import Entry
+from core.models import (
+    Entry,
+    EntryImage,
+)
 from entry import serializers
 
 
@@ -65,13 +68,26 @@ class EntryViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=True, url_path='upload-image')
     def upload_image(self, request, pk=None):
         """
-        Upload an image to entry.
+        Upload multiple images to an entry.
         """
         entry = self.get_object()
-        serializer = self.get_serializer(entry, data=request.data)
+        images = request.FILES.getlist('images')
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        if not images:
+            return Response({'error': 'No images provided'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # user is not allowed to upload images more than
+        # max_entry_images specified in their plan
+        max_entry_images = request.user.plan.max_entry_images
+        if len(images) > max_entry_images:
+            return Response(
+                {'message': f'Maximum images allowed: {max_entry_images}'},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        image_instances = [EntryImage(
+            image=image, entry=entry) for image in images]
+        EntryImage.objects.bulk_create(image_instances)
+
+        return Response({'message': 'Images uploaded successfully'},
+                        status=status.HTTP_201_CREATED)

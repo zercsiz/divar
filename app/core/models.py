@@ -18,7 +18,7 @@ from django.conf import settings
 
 def entry_image_file_path(instance, filename):
     """
-    Generate file path for new entry image.
+    Generate file path for new EntryImage.
     """
     ext = os.path.splitext(filename)[1]
     filename = f'{uuid.uuid4()}{ext}'
@@ -33,6 +33,7 @@ class Plan(models.Model):
     name = models.CharField(max_length=255)
     max_entries = models.IntegerField(default=3)
     days_to_expire = models.IntegerField(default=30)
+    max_entry_images = models.IntegerField(default=4)
 
     def __str__(self):
         return self.name
@@ -122,7 +123,8 @@ class Entry(models.Model):
     """
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='entries'
     )
     title = models.CharField(max_length=255)
     description = models.TextField()
@@ -132,8 +134,24 @@ class Entry(models.Model):
     is_expired = models.BooleanField(default=False)
     address = models.TextField()
     phone_number = models.CharField(max_length=15)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    image = models.ImageField(null=True, upload_to=entry_image_file_path)
+    category = models.ForeignKey(Category,
+                                 on_delete=models.CASCADE,
+                                 related_name='entries')
 
     def __str__(self):
         return self.title
+
+
+class EntryImage(models.Model):
+    """
+    Image object.
+    """
+    entry = models.ForeignKey(Entry,
+                              on_delete=models.CASCADE,
+                              related_name='images')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    image = models.ImageField(upload_to=entry_image_file_path)
+
+    def __str__(self):
+        return (f"""Image for Entry {self.entry.id}, uploaded on
+                {self.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')}""")
