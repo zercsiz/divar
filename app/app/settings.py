@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'rest_framework.authtoken',
     'django_celery_beat',
+    'corsheaders',
 
     'core.apps.CoreConfig',
     'user.apps.UserConfig',
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'app.urls'
@@ -154,3 +156,10 @@ SPECTACULAR_SETTINGS = {
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+# cors config
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # React frontend
+    "http://127.0.0.1:3000",
+]
