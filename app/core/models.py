@@ -132,7 +132,6 @@ class Entry(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     edited_at = models.DateTimeField(auto_now=True)
     is_expired = models.BooleanField(default=False)
-    address = models.TextField()
     phone_number = models.CharField(max_length=15)
     category = models.ForeignKey(Category,
                                  on_delete=models.CASCADE,

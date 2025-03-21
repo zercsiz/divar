@@ -71,7 +71,6 @@ def create_entry(user: object, **params) -> object:
         'description': 'a test description for entry',
         'price': Decimal('150.00'),
         'phone_number': '+906667775454',
-        'address': 'example address, number 99',
         'category': category
     }
     defaults.update(params)
@@ -180,7 +179,6 @@ class PrivateEntryApiTests(TestCase):
             'description': 'a test description for entry',
             'price': Decimal('150.00'),
             'phone_number': '+906667775454',
-            'address': 'example address, number 99',
             'category': category_obj.name,
         }
         res = self.client.post(ENTRIES_URL, payload, format='json')
@@ -207,7 +205,6 @@ class PrivateEntryApiTests(TestCase):
             'description': 'a test description for entry',
             'price': Decimal('150.00'),
             'phone_number': '+906667775454',
-            'address': 'example address, number 99',
         }
         res = self.client.post(ENTRIES_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
@@ -228,7 +225,6 @@ class PrivateEntryApiTests(TestCase):
             'description': 'a test description for entry',
             'price': Decimal('150.00'),
             'phone_number': '+906667775454',
-            'address': 'example address, number 99',
             'category': category_obj.name
         }
         res = self.client.post(ENTRIES_URL, payload)
@@ -266,7 +262,6 @@ class PrivateEntryApiTests(TestCase):
             'description': 'a new test description for entry',
             'price': Decimal('100.00'),
             'phone_number': '+906667779999',
-            'address': 'some new address',
             'category': new_category_obj.name
         }
         res = self.client.put(url, payload)

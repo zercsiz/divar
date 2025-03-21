@@ -41,10 +41,8 @@ class EntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Entry
         fields = ['id', 'title', 'price', 'created_at',
-                  'edited_at', 'is_expired', 'address', 'phone_number',
-                  'category', 'images']
-        read_only_fields = ['id', 'created_at', 'edited_at',
-                            'is_expired']
+                  'is_expired', 'category', 'images']
+        read_only_fields = ['id', 'created_at', 'is_expired']
 
     def create(self, validated_data):
         """
@@ -91,4 +89,4 @@ class EntryDetailSerializer(EntrySerializer):
     Serializer for recipe detail view.
     """
     class Meta(EntrySerializer.Meta):
-        fields = EntrySerializer.Meta.fields + ['description']
+        fields = EntrySerializer.Meta.fields + ['description', 'phone_number']

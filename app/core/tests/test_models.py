@@ -72,7 +72,6 @@ class ModelTests(TestCase):
             description='a test description for entry',
             price=Decimal('150.00'),
             phone_number='+906667775454',
-            address='example address, number 99',
             category=category_obg
         )
         self.assertEqual(str(entry), entry.title)
@@ -98,7 +97,6 @@ class ModelTests(TestCase):
             description='a test description for entry',
             price=Decimal('150.00'),
             phone_number='+906667775454',
-            address='example address, number 99',
             category=category
         )
         uuid = 'test-uuid'
