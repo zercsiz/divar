@@ -10,12 +10,20 @@ from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
 
 from core.models import (
     Entry,
     EntryImage,
 )
 from entry import serializers
+
+
+class EntryListPagination(PageNumberPagination):
+    """
+    Pagination for listing entries.
+    """
+    page_size = 30
 
 
 class EntryViewSet(viewsets.ModelViewSet):
@@ -26,6 +34,7 @@ class EntryViewSet(viewsets.ModelViewSet):
     queryset = Entry.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    pagination_class = EntryListPagination
 
     def get_queryset(self):
         """

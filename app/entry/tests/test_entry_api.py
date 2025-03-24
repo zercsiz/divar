@@ -124,7 +124,7 @@ class PrivateEntryApiTests(TestCase):
         entries = Entry.objects.all().order_by('-created_at')
         serializer = EntrySerializer(entries, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.data['results'], serializer.data)
 
     def test_retrived_entries_have_images(self):
         """
@@ -141,7 +141,7 @@ class PrivateEntryApiTests(TestCase):
                 entry=entry)
 
         res = self.client.get(ENTRIES_URL)
-        listed_entry = res.data[0]
+        listed_entry = res.data['results'][0]
         self.assertNotEqual(listed_entry['images'], [])
 
     def test_expired_entries_are_not_returned_in_listing(self):
@@ -156,7 +156,7 @@ class PrivateEntryApiTests(TestCase):
         entries = Entry.objects.filter(
             is_expired=False).order_by('-created_at')
         serializer = EntrySerializer(entries, many=True)
-        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.data['results'], serializer.data)
 
     def test_entry_detail(self):
         """
