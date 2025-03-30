@@ -17,7 +17,11 @@ from core.models import (
     Plan,
     EntryImage
 )
-from entry.serializers import EntrySerializer, EntryDetailSerializer
+from entry.serializers import (
+    EntrySerializer,
+    EntryDetailSerializer,
+    CategorySerializer,
+)
 
 from django.test import TestCase
 from django.urls import reverse
@@ -27,6 +31,7 @@ from django.core.files.images import ImageFile
 
 ENTRIES_URL = reverse('entry:entry-list')
 USER_ENTRIES_URL = reverse('entry:entry-list-user-entries')
+CATEGORY_LIST_URL = reverse('entry:category-list')
 
 
 def detail_url(entry_id: int):
@@ -483,3 +488,24 @@ class UserWithIncompleteProfileTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         exists = Entry.objects.filter(title=payload['title']).exists()
         self.assertFalse(exists)
+
+
+class CategoryApiTests(TestCase):
+    """
+    Tests for category api.
+    """
+    def setUp(self):
+        self.user = create_user()
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+    def test_list_categories_successful(self):
+        """
+        Test listing categories is successful.
+        """
+        Category.objects.create(name='cat1')
+        Category.objects.create(name='cat2')
+        res = self.client.get(CATEGORY_LIST_URL)
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        self.assertEqual(res.data, serializer.data)

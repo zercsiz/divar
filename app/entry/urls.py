@@ -8,5 +8,8 @@ router.register('entries', views.EntryViewSet)
 app_name = 'entry'
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('category-list/',
+         views.CategoryListView.as_view(),
+         name='category-list')
 ]

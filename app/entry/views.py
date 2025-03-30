@@ -4,6 +4,7 @@ Views for recipe APIs.
 from rest_framework import (
     viewsets,
     status,
+    generics,
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,6 +16,7 @@ from rest_framework.pagination import PageNumberPagination
 from core.models import (
     Entry,
     EntryImage,
+    Category,
 )
 from entry import serializers
 
@@ -126,3 +128,13 @@ class EntryViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class CategoryListView(generics.ListAPIView):
+    """
+    Category list view.
+    """
+    serializer_class = serializers.CategorySerializer
+    queryset = Category.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
