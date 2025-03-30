@@ -26,6 +26,7 @@ from django.core.files.images import ImageFile
 
 
 ENTRIES_URL = reverse('entry:entry-list')
+USER_ENTRIES_URL = reverse('entry:entry-list-user-entries')
 
 
 def detail_url(entry_id: int):
@@ -143,6 +144,31 @@ class PrivateEntryApiTests(TestCase):
         res = self.client.get(ENTRIES_URL)
         listed_entry = res.data['results'][0]
         self.assertNotEqual(listed_entry['images'], [])
+
+    def test_list_user_entries_successful(self):
+        """
+        Test listing use entries successful.
+        """
+        create_entry(user=self.user, title='entry1')
+        create_entry(user=self.user, title='entry2')
+        create_entry(user=self.user, title='entry3')
+        user2 = create_user(email='user2@example.com')
+        create_entry(user=user2, title='other entry')
+        entries = Entry.objects.filter(user=self.user).order_by('-created_at')
+        serializer = EntrySerializer(entries, many=True)
+        res = self.client.get(USER_ENTRIES_URL)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['results'], serializer.data)
+
+    def test_list_user_entries_post_request_error(self):
+        """
+        Test post request is not allowed for user-entries endpoint.
+        """
+        payload = {
+            'title': 'test title'
+        }
+        res = self.client.post(USER_ENTRIES_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_expired_entries_are_not_returned_in_listing(self):
         """

@@ -47,6 +47,10 @@ class EntryViewSet(viewsets.ModelViewSet):
             return self.queryset.filter(
                 is_expired=False).order_by('-created_at')
 
+        if self.action == 'list_user_entries':
+            return self.queryset.filter(
+                user=self.request.user).order_by('-created_at')
+
         return self.queryset.filter(
             user=self.request.user).order_by('-created_at')
 
@@ -55,7 +59,7 @@ class EntryViewSet(viewsets.ModelViewSet):
         Return the serializer class for the request.
         """
 
-        if self.action == 'list':
+        if self.action == 'list' or self.action == 'list_user_entries':
             return serializers.EntrySerializer
         elif self.action == 'upload_image':
             return serializers.EntryImageSerializer
@@ -100,3 +104,18 @@ class EntryViewSet(viewsets.ModelViewSet):
 
         return Response({'message': 'Images uploaded successfully'},
                         status=status.HTTP_201_CREATED)
+
+    @action(methods=['GET'], detail=False, url_path='user-entries')
+    def list_user_entries(self, resuqest):
+        """
+        Action to retrieve user's entries.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
