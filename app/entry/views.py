@@ -69,14 +69,21 @@ class EntryViewSet(viewsets.ModelViewSet):
         """
         Create a new entry.
         """
+        user = self.request.user
+
+        # users are required to complete their profiles
+        # to be able to create entries
+        if user.is_profile_complete() is False:
+            raise ValidationError("Profile is incomplete.")
+
         user_entries_count = Entry.objects.filter(
-            user=self.request.user).count()
-        max_entries = self.request.user.plan.max_entries
+            user=user).count()
+        max_entries = user.plan.max_entries
         if user_entries_count == max_entries:
             raise ValidationError(
                 f'User has reached the maximum of {max_entries} entries.')
 
-        serializer.save(user=self.request.user)
+        serializer.save(user=user)
 
     @action(methods=['POST'], detail=True, url_path='upload-image')
     def upload_image(self, request, pk=None):

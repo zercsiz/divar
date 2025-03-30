@@ -449,3 +449,37 @@ class ImageUploadTests(TestCase):
         self.entry.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(self.entry.images.all().exists())
+
+
+class UserWithIncompleteProfileTests(TestCase):
+    """
+    Tests for users with incomplete profiles.
+    """
+    def setUp(self):
+        user = get_user_model().objects.create_user(
+            email='testuser@example.com',
+            password='testpass123',
+            first_name='',
+            last_name='',
+            phone_number='',
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user)
+
+    def test_create_entry_without_complete_profile_error(self):
+        """
+        Test users can't create entries without complete profiles.
+        """
+        category_obj = Category.objects.create(name='cat1')
+        payload = {
+            'title': 'test entry',
+            'description': 'a test description for entry',
+            'price': Decimal('150.00'),
+            'phone_number': '+906667775454',
+            'category': category_obj.name,
+        }
+
+        res = self.client.post(ENTRIES_URL, payload, format='multipart')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        exists = Entry.objects.filter(title=payload['title']).exists()
+        self.assertFalse(exists)

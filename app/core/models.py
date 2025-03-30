@@ -106,6 +106,20 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
+    def is_profile_complete(self):
+        """
+        Checks the required fields are not null or blank
+        for creating entries.
+        """
+        required_fields = ['first_name',
+                           'last_name',
+                           'phone_number']
+        for field in required_fields:
+            if getattr(self, field).strip() == "":
+                return False
+
+        return True
+
 
 class Category(models.Model):
     """
